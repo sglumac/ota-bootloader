@@ -1,0 +1,9 @@
+../../Drivers/CMSIS/Include/core_cm4.h:1933:34:__NVIC_SystemReset	1
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:90:19:Flash_WriteBank2Page	5
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:156:10:crc32_bitwise	4
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:177:13:Blink	2
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:187:5:main	21
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:409:13:SystemClock_Config	3
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:452:1:__io_putchar	1
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:487:6:HAL_GPIO_EXTI_Callback	2
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WIFI_OTA_2/Src/main.c:503:6:SPI3_IRQHandler	1

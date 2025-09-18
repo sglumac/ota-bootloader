@@ -1,0 +1,80 @@
+14:02:36 **** Incremental Build of configuration Debug for project WiFi_Client_Server ****
+make -j16 all 
+arm-none-eabi-gcc "/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DUSE_HAL_DRIVER -DUSE_STM32L475E_IOT01 -DSTM32L475xx -c -I../../Inc -I../../Common/Inc -I../../Drivers/CMSIS/Include -I../../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../../Drivers/STM32L4xx_HAL_Driver/Inc -I../../Drivers/BSP/B-L475E-IOT01 -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Application/User/main.d" -MT"Application/User/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Application/User/main.o"
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c: In function 'main':
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:396:51: warning: format '%X' expects argument of type 'unsigned int', but argument 2 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  396 |                                           TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n",*boot_to_ptr,*update_to_ptr);
+      |                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~
+      |                                                                                     |
+      |                                                                                     uint32_t {aka long unsigned int}
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:51:30: note: in definition of macro 'TERMOUT'
+   51 | #define TERMOUT(...)  printf(__VA_ARGS__)
+      |                              ^~~~~~~~~~~
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:396:66: note: format string is defined here
+  396 |                                           TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n",*boot_to_ptr,*update_to_ptr);
+      |                                                                 ~^
+      |                                                                  |
+      |                                                                  unsigned int
+      |                                                                 %lX
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:396:51: warning: format '%X' expects argument of type 'unsigned int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  396 |                                           TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n",*boot_to_ptr,*update_to_ptr);
+      |                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~              ~~~~~~~~~~~~~~
+      |                                                                                                  |
+      |                                                                                                  uint32_t {aka long unsigned int}
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:51:30: note: in definition of macro 'TERMOUT'
+   51 | #define TERMOUT(...)  printf(__VA_ARGS__)
+      |                              ^~~~~~~~~~~
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:396:80: note: format string is defined here
+  396 |                                           TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n",*boot_to_ptr,*update_to_ptr);
+      |                                                                               ~^
+      |                                                                                |
+      |                                                                                unsigned int
+      |                                                                               %lX
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:397:51: warning: pointer targets in passing argument 1 of 'sprintf' differ in signedness [-Wpointer-sign]
+  397 |                                           sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
+      |                                                   ^~~~~~~
+      |                                                   |
+      |                                                   uint8_t * {aka unsigned char *}
+In file included from ../../Common/Inc/es_wifi.h:30,
+                 from ../../Common/Inc/wifi.h:26,
+                 from ../../Inc/main.h:24,
+                 from /home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:19:
+/opt/st/stm32cubeide_1.19.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.linux64_1.0.0.202410170706/tools/arm-none-eabi/include/stdio.h:250:18: note: expected 'char * restrict' but argument is of type 'uint8_t *' {aka 'unsigned char *'}
+  250 | int     sprintf (char *__restrict, const char *__restrict, ...)
+      |                  ^
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:397:63: warning: format '%X' expects argument of type 'unsigned int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  397 |                                           sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
+      |                                                            ~~~^        ~~~~~~~~~~~~
+      |                                                               |        |
+      |                                                               |        uint32_t {aka long unsigned int}
+      |                                                               unsigned int
+      |                                                            %08lX
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:397:69: warning: format '%X' expects argument of type 'unsigned int', but argument 4 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+  397 |                                           sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
+      |                                                                  ~~~^               ~~~~~~~~~~~~~~
+      |                                                                     |               |
+      |                                                                     unsigned int    uint32_t {aka long unsigned int}
+      |                                                                  %08lX
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:397:70: warning: 'sprintf' writing a terminating nul past the end of the destination [-Wformat-overflow=]
+  397 |                                           sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
+      |                                                                      ^
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:397:43: note: 'sprintf' output 19 bytes into a destination of size 18
+  397 |                                           sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
+      |                                           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "WiFi_Client_Server.elf" @"objects.list"   -mcpu=cortex-m4 -T"/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/STM32CubeIDE/STM32L475VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="WiFi_Client_Server.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: WiFi_Client_Server.elf
+ 
+arm-none-eabi-size  WiFi_Client_Server.elf 
+arm-none-eabi-objdump -h -S WiFi_Client_Server.elf  > "WiFi_Client_Server.list"
+arm-none-eabi-objcopy  -O binary WiFi_Client_Server.elf  "WiFi_Client_Server.bin"
+   text	   data	    bss	    dec	    hex	filename
+  36936	      0	  83576	 120512	  1d6c0	WiFi_Client_Server.elf
+Finished building: default.size.stdout
+ 
+Finished building: WiFi_Client_Server.bin
+ 
+Finished building: WiFi_Client_Server.list
+ 
+
+14:02:36 Build Finished. 0 errors, 6 warnings. (took 390ms)
+

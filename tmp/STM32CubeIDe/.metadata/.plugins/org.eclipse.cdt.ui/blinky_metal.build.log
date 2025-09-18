@@ -1,0 +1,10 @@
+13:09:51 **** Incremental Build of configuration Debug for project blinky_metal ****
+make -j16 all 
+arm-none-eabi-size  blinky_metal.elf 
+   text	   data	    bss	    dec	    hex	filename
+   3152	     12	   1572	   4736	   1280	blinky_metal.elf
+Finished building: default.size.stdout
+ 
+
+13:09:51 Build Finished. 0 errors, 0 warnings. (took 141ms)
+
