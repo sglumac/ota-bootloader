@@ -1,0 +1,3 @@
+/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WIFI_OTA_2/Build_Wifi_Ota/CMakeFiles/WIFI_OTA_2.dir
+/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WIFI_OTA_2/Build_Wifi_Ota/CMakeFiles/edit_cache.dir
+/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WIFI_OTA_2/Build_Wifi_Ota/CMakeFiles/rebuild_cache.dir
