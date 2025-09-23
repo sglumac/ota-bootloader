@@ -1,3 +1,0 @@
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/Bootloader_test/Bootloader_Build/CMakeFiles/Bootloader_test.dir
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/Bootloader_test/Bootloader_Build/CMakeFiles/edit_cache.dir
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/Bootloader_test/Bootloader_Build/CMakeFiles/rebuild_cache.dir

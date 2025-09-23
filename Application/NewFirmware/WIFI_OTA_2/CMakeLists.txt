@@ -14,7 +14,7 @@ project(WIFI_OTA_2 C ASM)
 set(MCU_FLAGS "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard")
 set(CMAKE_C_FLAGS  "${MCU_FLAGS} -Wall -O2 -ffunction-sections -fdata-sections")
 set(CMAKE_ASM_FLAGS "${MCU_FLAGS} -Wall -O2 -ffunction-sections -fdata-sections")
-set(CMAKE_EXE_LINKER_FLAGS "${MCU_FLAGS} -T${CMAKE_SOURCE_DIR}/STM32CubeIDE/STM32L475VGTX_FLASH.ld -Wl,--gc-sections -specs=nosys.specs -specs=nano.specs")
+set(CMAKE_EXE_LINKER_FLAGS "${MCU_FLAGS} -T${CMAKE_SOURCE_DIR}/STM32CubeIDE/STM32L475VGTX_FLASH.ld -Wl,--gc-sections -specs=nano.specs")
 
 
 

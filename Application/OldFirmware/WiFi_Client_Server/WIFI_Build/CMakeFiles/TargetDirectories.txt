@@ -1,3 +1,0 @@
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WiFi_Client_Server/WIFI_Build/CMakeFiles/WIFI_Client_Server.dir
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WiFi_Client_Server/WIFI_Build/CMakeFiles/edit_cache.dir
-/home/student/Desktop/final_files1/tmp/STM32CubeIDe/WiFi_Client_Server/WIFI_Build/CMakeFiles/rebuild_cache.dir

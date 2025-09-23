@@ -16,7 +16,7 @@ def tcp_client(host: str, port: int):
                 if num == 0:
                     message = b"\x00\x48\x65\x6C\x6C\x6F"
                 if num == 1:
-                    with open("/home/student/Desktop/final_files1/tmp/tcp/WIFI_OTA_2.bin", "rb") as f: #?????
+                    with open("binaries/WIFI_OTA_2.bin", "rb") as f:  # ?????
                         while True:
                             chunk = f.read(512)
                             if not chunk:
@@ -87,6 +87,6 @@ def tcp_client(host: str, port: int):
 
 if __name__ == "__main__":
     # Example: change to the IP/port of your server
-    SERVER_IP = "172.20.10.4"
+    SERVER_IP = "192.168.214.184"
     SERVER_PORT = 8002
     tcp_client(SERVER_IP, SERVER_PORT)

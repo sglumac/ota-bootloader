@@ -1,67 +1,66 @@
 /**
-  ******************************************************************************
-  * @file    Wifi/WiFi_Client_Server/src/main.c
-  * @author  MCD Application Team
-  * @brief   This file provides main program functions
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    Wifi/WiFi_Client_Server/src/main.c
+ * @author  MCD Application Team
+ * @brief   This file provides main program functions
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2017 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdio.h>
 #include "stm32l4xx_hal.h"
-#include <stdint.h>
 #include <ctype.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 /* Private defines -----------------------------------------------------------*/
 
-#define FLASH_BANK2_START_ADDR   ((uint32_t)0x08040000)
-#define FLASH_BANK2_END_ADDR     ((uint32_t)0x08080000)
+#define FLASH_BANK2_START_ADDR ((uint32_t)0x08040000)
+#define FLASH_BANK2_END_ADDR ((uint32_t)0x08080000)
 #define POLYNOMIAL 0xEDB88320
 #define INITIAL_CRC 0xFFFFFFFF
 
 #ifndef OTA_SECTOR5_SIZE
-#define OTA_SECTOR5_SIZE  0x00020000U  /* 128 KiB */
+#define OTA_SECTOR5_SIZE 0x00020000U /* 128 KiB */
 #endif
 #define TERMINAL_USE
 
-
 /* Update SSID and PASSWORD with own Access point settings */
-#define SSID     "PhoeniXIII"
-#define PASSWORD "MADhatter"
+#define SSID "Security Maric"
+#define PASSWORD "kukinator999"
 
-uint8_t RemoteIP[] = {192,168,99,201};
-#define RemotePORT	8002
+uint8_t RemoteIP[] = {192, 168, 99, 201};
+#define RemotePORT 8002
 
 #define WIFI_WRITE_TIMEOUT 10000
-#define WIFI_READ_TIMEOUT  3000
+#define WIFI_READ_TIMEOUT 3000
 
-#define CONNECTION_TRIAL_MAX          10
+#define CONNECTION_TRIAL_MAX 10
 
-#if defined (TERMINAL_USE)
-#define TERMOUT(...)  printf(__VA_ARGS__)
+#if defined(TERMINAL_USE)
+#define TERMOUT(...) printf(__VA_ARGS__)
 #else
 #define TERMOUT(...)
 #endif
 
 /* Private variables ---------------------------------------------------------*/
-#if defined (TERMINAL_USE)
+#if defined(TERMINAL_USE)
 extern UART_HandleTypeDef hDiscoUart;
 #endif /* TERMINAL_USE */
-static uint8_t RxData [768];
+static uint8_t RxData[768];
 static uint32_t offset = 0;
 
 /* Private function prototypes -----------------------------------------------*/
-#if defined (TERMINAL_USE)
+#if defined(TERMINAL_USE)
 #ifdef __GNUC__
 /* With GCC, small TERMOUT (option LD Linker->Libraries->Small TERMOUT
    set to 'Yes') calls __io_putchar() */
@@ -72,195 +71,197 @@ static uint32_t offset = 0;
 #endif /* TERMINAL_USE */
 
 static void SystemClock_Config(void);
-//static void Blink(int x, int y);
+// static void Blink(int x, int y);
 
-
-
-extern  SPI_HandleTypeDef hspi;
+extern SPI_HandleTypeDef hspi;
 
 /* Private functions ---------------------------------------------------------*/
 
-
 /**
-  * @brief  Write one 2KB Flash page into Bank 2 starting from 0x08080000 + offset.
-  * @param  offset: Offset from 0x08080000 (must be multiple of 0x800 = 2KB).
-  * @param  data: Pointer to a 2KB buffer with data to program.
-  * @retval HAL_StatusTypeDef
-  */
-HAL_StatusTypeDef Flash_WriteBank2Page(uint32_t offset, uint8_t *data,uint32_t WRITE_ADDR)
-{
-    HAL_StatusTypeDef status;
-    uint32_t pageAddress = WRITE_ADDR + offset;  // Bank 2 base + offset
-    uint32_t i;
+ * @brief  Write one 2KB Flash page into Bank 2 starting from 0x08080000 +
+ * offset.
+ * @param  offset: Offset from 0x08080000 (must be multiple of 0x800 = 2KB).
+ * @param  data: Pointer to a 2KB buffer with data to program.
+ * @retval HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef Flash_WriteBank2Page(uint32_t offset, uint8_t *data,
+                                       uint32_t WRITE_ADDR) {
+  HAL_StatusTypeDef status;
+  uint32_t pageAddress = WRITE_ADDR + offset; // Bank 2 base + offset
+  uint32_t i;
 
-    // Ensure offset is aligned to page size
-    if (offset % (FLASH_PAGE_SIZE/4) != 0) {
-        return HAL_ERROR;
-    }
+  // Ensure offset is aligned to page size
+  if (offset % (FLASH_PAGE_SIZE / 4) != 0) {
+    return HAL_ERROR;
+  }
 
-    // Unlock Flash control register
-    HAL_FLASH_Unlock();
+  // Unlock Flash control register
+  HAL_FLASH_Unlock();
 
-    // Clear any pending flags
-    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
-                           FLASH_FLAG_SIZERR | FLASH_FLAG_OPTVERR | FLASH_FLAG_PROGERR);
+  // Clear any pending flags
+  __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_WRPERR |
+                         FLASH_FLAG_PGAERR | FLASH_FLAG_SIZERR |
+                         FLASH_FLAG_OPTVERR | FLASH_FLAG_PROGERR);
 
-    // Erase the target page first
-    FLASH_EraseInitTypeDef eraseInitStruct;
-    uint32_t pageError;
+  // Erase the target page first
+  FLASH_EraseInitTypeDef eraseInitStruct;
+  uint32_t pageError;
 
-    eraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;
-    eraseInitStruct.Banks     = FLASH_BANK_2;
-    eraseInitStruct.Page      = ((WRITE_ADDR - 0x08080000U) / FLASH_PAGE_SIZE) + (offset / (FLASH_PAGE_SIZE/4)); // Page index in Bank 2
-    eraseInitStruct.NbPages   = 1;
+  eraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;
+  eraseInitStruct.Banks = FLASH_BANK_2;
+  eraseInitStruct.Page =
+      ((WRITE_ADDR - 0x08080000U) / FLASH_PAGE_SIZE) +
+      (offset / (FLASH_PAGE_SIZE / 4)); // Page index in Bank 2
+  eraseInitStruct.NbPages = 1;
 
-    status = HAL_FLASHEx_Erase(&eraseInitStruct, &pageError);
-    if (status != HAL_OK) {
-        HAL_FLASH_Lock();
-        return status;
-    }
-
-    // Program data: Flash writes are 64-bit (double-word) aligned
-    for (i = 0; i < (FLASH_PAGE_SIZE/4); i += 8) {
-        uint64_t word;
-        memcpy(&word, data + i, sizeof(uint64_t));
-
-        status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD,
-                                   pageAddress + i,
-                                   word);
-        if (status != HAL_OK) {
-            HAL_FLASH_Lock();
-            return status;
-        }
-    }
-
-    // Lock Flash again
-    HAL_FLASH_Lock();
-
-    return HAL_OK;
-}
-/**
-  * @brief  Compute CRC-32 checksum (bitwise implementation).
-  * @param  data    Pointer to input data buffer.
-  * @param  length  Length of input data in bytes.
-  * @retval 32-bit CRC value (standard CRC-32/ISO-HDLC).
-  *
-  * @note   - Polynomial: 0x04C11DB7 (reflected 0xEDB88320)
-  *         - Initial value: 0xFFFFFFFF
-  *         - Final XOR: 0xFFFFFFFF
-  *         - Input bytes are processed LSB-first (reflected).
-  *
-  * This function implements the standard CRC-32 algorithm
-  * used in Ethernet, ZIP, PNG, and zlib (binascii.crc32 in Python).
-  */
-uint32_t crc32_bitwise(const uint8_t *data, size_t length) {
-    uint32_t crc = INITIAL_CRC;
-
-    for (size_t i = 0; i < length; i++) {
-        crc ^= data[i];  // Step 1: XOR new byte into CRC
-        for (int j = 0; j < 8; j++) {  // Step 2: process each bit
-            if (crc & 1) {
-                crc = (crc >> 1) ^ POLYNOMIAL;
-            } else {
-                crc >>= 1;
-            }
-        }
-    }
-
-    return ~crc;  // Final XOR (standard CRC-32 step)
-}
-/**
-  * @brief  Main program
-  * @param  None
-  * @retval None
-  */
-static void Blink(int x, int y) {
-    for (int i = 0; i < x; i++) {
-        HAL_GPIO_TogglePin(GPIOB, LED2_PIN);
-        HAL_Delay(y);
-        HAL_GPIO_TogglePin(GPIOB, LED2_PIN);
-        HAL_Delay(y);
-    }
-
-    HAL_GPIO_WritePin(GPIOB, LED2_PIN, GPIO_PIN_RESET);
-}
-
-__attribute__((section(".RamFunc")))
-HAL_StatusTypeDef Flash_Swap_Two_Words_InPlace(void)
-{
-    HAL_StatusTypeDef status = HAL_OK;
-    FLASH_EraseInitTypeDef EraseInit;
-    uint32_t PageError = 0;
-
-    /* addresses (no #defines) */
-    uint32_t addr_a = 0x08070000U;
-    uint32_t addr_b = 0x08070004U;
-
-    /* STM32L4 flash layout parameters (inline literals) */
-    uint32_t flash_base = 0x08000000U;
-    uint32_t page_size   = 0x800U;   /* 2 KB page */
-
-    /* compute page start and offsets */
-    uint32_t page_index = (addr_a - flash_base) / page_size;
-    uint32_t page_start = flash_base + page_index * page_size;
-    uint32_t offset_a   = addr_a - page_start;
-    uint32_t offset_b   = addr_b - page_start;
-
-    /* buffer to hold the whole page in RAM (uninitialized static -> BSS in RAM) */
-    static uint8_t page_buf[0x800];
-
-    uint32_t i;
-
-    /* read page into RAM buffer (byte-wise) */
-    for (i = 0; i < page_size; ++i) {
-        page_buf[i] = *((volatile uint8_t*)(page_start + i));
-    }
-
-    /* read original words (from flash memory) */
-    uint32_t orig_a = *((volatile uint32_t*)addr_a);
-    uint32_t orig_b = *((volatile uint32_t*)addr_b);
-
-    /* place swapped values into the RAM buffer */
-    memcpy(&page_buf[offset_a], &orig_b, sizeof(uint32_t));
-    memcpy(&page_buf[offset_b], &orig_a, sizeof(uint32_t));
-
-    /* prepare erase: type pages, single page, bank 1 (these addresses are in bank 1) */
-    EraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
-    EraseInit.Page      = page_index;
-    EraseInit.NbPages   = 1U;
-    EraseInit.Banks     = FLASH_BANK_1;
-
-    /* unlock flash and disable interrupts during erase/program */
-    HAL_FLASH_Unlock();
-    __disable_irq();
-
-    /* erase page */
-    if (HAL_FLASHEx_Erase(&EraseInit, &PageError) != HAL_OK) {
-        status = HAL_ERROR;
-        goto cleanup;
-    }
-
-    /* program back the page double-word (8 bytes) at a time */
-    for (i = 0; i < page_size; i += 8) {
-        uint64_t dw;
-        /* copy 8 bytes from buffer into a 64-bit value (unaligned-safe via memcpy) */
-        memcpy(&dw, &page_buf[i], sizeof(uint64_t));
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, page_start + i, dw) != HAL_OK) {
-            status = HAL_ERROR;
-            goto cleanup;
-        }
-    }
-
-cleanup:
-    __enable_irq();
+  status = HAL_FLASHEx_Erase(&eraseInitStruct, &pageError);
+  if (status != HAL_OK) {
     HAL_FLASH_Lock();
     return status;
+  }
+
+  // Program data: Flash writes are 64-bit (double-word) aligned
+  for (i = 0; i < (FLASH_PAGE_SIZE / 4); i += 8) {
+    uint64_t word;
+    memcpy(&word, data + i, sizeof(uint64_t));
+
+    status =
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, pageAddress + i, word);
+    if (status != HAL_OK) {
+      HAL_FLASH_Lock();
+      return status;
+    }
+  }
+
+  // Lock Flash again
+  HAL_FLASH_Lock();
+
+  return HAL_OK;
 }
-int main(void)
-{
+/**
+ * @brief  Compute CRC-32 checksum (bitwise implementation).
+ * @param  data    Pointer to input data buffer.
+ * @param  length  Length of input data in bytes.
+ * @retval 32-bit CRC value (standard CRC-32/ISO-HDLC).
+ *
+ * @note   - Polynomial: 0x04C11DB7 (reflected 0xEDB88320)
+ *         - Initial value: 0xFFFFFFFF
+ *         - Final XOR: 0xFFFFFFFF
+ *         - Input bytes are processed LSB-first (reflected).
+ *
+ * This function implements the standard CRC-32 algorithm
+ * used in Ethernet, ZIP, PNG, and zlib (binascii.crc32 in Python).
+ */
+uint32_t crc32_bitwise(const uint8_t *data, size_t length) {
+  uint32_t crc = INITIAL_CRC;
+
+  for (size_t i = 0; i < length; i++) {
+    crc ^= data[i];               // Step 1: XOR new byte into CRC
+    for (int j = 0; j < 8; j++) { // Step 2: process each bit
+      if (crc & 1) {
+        crc = (crc >> 1) ^ POLYNOMIAL;
+      } else {
+        crc >>= 1;
+      }
+    }
+  }
+
+  return ~crc; // Final XOR (standard CRC-32 step)
+}
+/**
+ * @brief  Main program
+ * @param  None
+ * @retval None
+ */
+static void Blink(int x, int y) {
+  for (int i = 0; i < x; i++) {
+    HAL_GPIO_TogglePin(GPIOB, LED2_PIN);
+    HAL_Delay(y);
+    HAL_GPIO_TogglePin(GPIOB, LED2_PIN);
+    HAL_Delay(y);
+  }
+
+  HAL_GPIO_WritePin(GPIOB, LED2_PIN, GPIO_PIN_RESET);
+}
+
+__attribute__((section(".RamFunc"))) HAL_StatusTypeDef
+Flash_Swap_Two_Words_InPlace(void) {
+  HAL_StatusTypeDef status = HAL_OK;
+  FLASH_EraseInitTypeDef EraseInit;
+  uint32_t PageError = 0;
+
+  /* addresses (no #defines) */
+  uint32_t addr_a = 0x08070000U;
+  uint32_t addr_b = 0x08070004U;
+
+  /* STM32L4 flash layout parameters (inline literals) */
+  uint32_t flash_base = 0x08000000U;
+  uint32_t page_size = 0x800U; /* 2 KB page */
+
+  /* compute page start and offsets */
+  uint32_t page_index = (addr_a - flash_base) / page_size;
+  uint32_t page_start = flash_base + page_index * page_size;
+  uint32_t offset_a = addr_a - page_start;
+  uint32_t offset_b = addr_b - page_start;
+
+  /* buffer to hold the whole page in RAM (uninitialized static -> BSS in RAM)
+   */
+  static uint8_t page_buf[0x800];
+
+  uint32_t i;
+
+  /* read page into RAM buffer (byte-wise) */
+  for (i = 0; i < page_size; ++i) {
+    page_buf[i] = *((volatile uint8_t *)(page_start + i));
+  }
+
+  /* read original words (from flash memory) */
+  uint32_t orig_a = *((volatile uint32_t *)addr_a);
+  uint32_t orig_b = *((volatile uint32_t *)addr_b);
+
+  /* place swapped values into the RAM buffer */
+  memcpy(&page_buf[offset_a], &orig_b, sizeof(uint32_t));
+  memcpy(&page_buf[offset_b], &orig_a, sizeof(uint32_t));
+
+  /* prepare erase: type pages, single page, bank 1 (these addresses are in bank
+   * 1) */
+  EraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+  EraseInit.Page = page_index;
+  EraseInit.NbPages = 1U;
+  EraseInit.Banks = FLASH_BANK_1;
+
+  /* unlock flash and disable interrupts during erase/program */
+  HAL_FLASH_Unlock();
+  __disable_irq();
+
+  /* erase page */
+  if (HAL_FLASHEx_Erase(&EraseInit, &PageError) != HAL_OK) {
+    status = HAL_ERROR;
+    goto cleanup;
+  }
+
+  /* program back the page double-word (8 bytes) at a time */
+  for (i = 0; i < page_size; i += 8) {
+    uint64_t dw;
+    /* copy 8 bytes from buffer into a 64-bit value (unaligned-safe via memcpy)
+     */
+    memcpy(&dw, &page_buf[i], sizeof(uint64_t));
+    if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, page_start + i, dw) !=
+        HAL_OK) {
+      status = HAL_ERROR;
+      goto cleanup;
+    }
+  }
+
+cleanup:
+  __enable_irq();
+  HAL_FLASH_Lock();
+  return status;
+}
+int main(void) {
   SCB->VTOR = 0x080C0000;
-  uint8_t  MAC_Addr[6] = {0};
-  uint8_t  IP_Addr[4] = {0};
+  uint8_t MAC_Addr[6] = {0};
+  uint8_t IP_Addr[4] = {0};
   uint8_t TxData[] = "Confirm.";
   uint8_t TxData2[] = "Confirming crc.";
   uint8_t TxData3[] = "Bad CRC.";
@@ -269,21 +270,21 @@ int main(void)
   uint16_t Datalen;
   int32_t ret;
   uint8_t tries = 0;
-  uint32_t *boot_to_ptr = (uint32_t*)0x08070000;
-  uint32_t *update_to_ptr = (uint32_t*)0x08070004;
+  uint32_t *boot_to_ptr = (uint32_t *)0x08070000;
+  uint32_t *update_to_ptr = (uint32_t *)0x08070004;
   bool updated = false;
-  //int16_t Trials = CONNECTION_TRIAL_MAX;
+  // int16_t Trials = CONNECTION_TRIAL_MAX;
   bool update = false;
 
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+   */
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
   /* Configure LED2 */
   BSP_LED_Init(LED2);
 
-#if defined (TERMINAL_USE)
+#if defined(TERMINAL_USE)
   /* Initialize all configured peripherals */
   hDiscoUart.Instance = DISCOVERY_COM1;
   hDiscoUart.Init.BaudRate = 115200;
@@ -301,190 +302,185 @@ int main(void)
 
   /*Initialize  WIFI module */
   if (WIFI_Init() == WIFI_STATUS_OK) {
-      TERMOUT("> WIFI Module Initialized.\n");
+    TERMOUT("> WIFI Module Initialized.\n");
 
-      if (WIFI_GetMAC_Address(MAC_Addr, sizeof(MAC_Addr)) == WIFI_STATUS_OK) {
-          TERMOUT("> es-wifi module MAC Address : %X:%X:%X:%X:%X:%X\n",
-                  MAC_Addr[0],
-                  MAC_Addr[1],
-                  MAC_Addr[2],
-                  MAC_Addr[3],
-                  MAC_Addr[4],
-                  MAC_Addr[5]);
-      } else {
-          TERMOUT("> ERROR : CANNOT get MAC address\n");
-          BSP_LED_On(LED2);
-      }
-
-      if (WIFI_Connect(SSID, PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
-          TERMOUT("> es-wifi module connected \n");
-
-          if (WIFI_GetIP_Address(IP_Addr, sizeof(IP_Addr)) == WIFI_STATUS_OK) {
-              TERMOUT("> es-wifi module got IP Address : %d.%d.%d.%d\n",
-                      IP_Addr[0],
-                      IP_Addr[1],
-                      IP_Addr[2],
-                      IP_Addr[3]);
-
-              TERMOUT("> Starting TCP server on port %d ...\n", RemotePORT);
-
-              /* Start a single-connection TCP server on socket 0 */
-              if (WIFI_StartServer(0, WIFI_TCP_PROTOCOL, 1 /*backlog*/, "TCP_SERVER",
-                                   RemotePORT) == WIFI_STATUS_OK) {
-                  TERMOUT("> Server started. Waiting for a client...\n");
-
-                  uint8_t clientIP[4] = {0};
-                  uint16_t clientPort = 0;
-
-                  /* Block (with timeouts) until a client connects */
-                  while (1) {
-                      WIFI_Status_t w = WIFI_WaitServerConnection(
-                          0, WIFI_READ_TIMEOUT, clientIP, sizeof(clientIP), &clientPort);
-
-                      if (w == WIFI_STATUS_OK) {
-                          TERMOUT("> Client connected: %d.%d.%d.%d:%d\n",
-                                  clientIP[0], clientIP[1], clientIP[2], clientIP[3],
-                                  clientPort);
-
-                          Blink(3,500);
-                          Socket = 0; /* data I/O uses socket 0 for this single-conn server */
-                          break;       /* proceed to your existing while(1) data loop */
-                      } else if (w == WIFI_STATUS_TIMEOUT) {
-                          /* keep waiting */
-                          continue;
-                      } else {
-                          TERMOUT("> ERROR : WaitServerConnection failed\n");
-                          BSP_LED_On(LED2);
-                          break;
-                      }
-                  }
-              } else {
-                  TERMOUT("> ERROR : Cannot start server\n");
-                  BSP_LED_On(LED2);
-              }
-          } else {
-              TERMOUT("> ERROR : es-wifi module CANNOT get IP address\n");
-              BSP_LED_On(LED2);
-          }
-      } else {
-          TERMOUT("> ERROR : es-wifi module NOT connected\n");
-          BSP_LED_On(LED2);
-      }
-  } else {
-      TERMOUT("> ERROR : WIFI Module cannot be initialized.\n");
+    if (WIFI_GetMAC_Address(MAC_Addr, sizeof(MAC_Addr)) == WIFI_STATUS_OK) {
+      TERMOUT("> es-wifi module MAC Address : %X:%X:%X:%X:%X:%X\n", MAC_Addr[0],
+              MAC_Addr[1], MAC_Addr[2], MAC_Addr[3], MAC_Addr[4], MAC_Addr[5]);
+    } else {
+      TERMOUT("> ERROR : CANNOT get MAC address\n");
       BSP_LED_On(LED2);
+    }
+
+    if (WIFI_Connect(SSID, PASSWORD, WIFI_ECN_WPA2_PSK) == WIFI_STATUS_OK) {
+      TERMOUT("> es-wifi module connected \n");
+
+      if (WIFI_GetIP_Address(IP_Addr, sizeof(IP_Addr)) == WIFI_STATUS_OK) {
+        TERMOUT("> es-wifi module got IP Address : %d.%d.%d.%d\n", IP_Addr[0],
+                IP_Addr[1], IP_Addr[2], IP_Addr[3]);
+
+        TERMOUT("> Starting TCP server on port %d ...\n", RemotePORT);
+
+        /* Start a single-connection TCP server on socket 0 */
+        if (WIFI_StartServer(0, WIFI_TCP_PROTOCOL, 1 /*backlog*/, "TCP_SERVER",
+                             RemotePORT) == WIFI_STATUS_OK) {
+          TERMOUT("> Server started. Waiting for a client...\n");
+
+          uint8_t clientIP[4] = {0};
+          uint16_t clientPort = 0;
+
+          /* Block (with timeouts) until a client connects */
+          while (1) {
+            WIFI_Status_t w = WIFI_WaitServerConnection(
+                0, WIFI_READ_TIMEOUT, clientIP, sizeof(clientIP), &clientPort);
+
+            if (w == WIFI_STATUS_OK) {
+              TERMOUT("> Client connected: %d.%d.%d.%d:%d\n", clientIP[0],
+                      clientIP[1], clientIP[2], clientIP[3], clientPort);
+
+              Blink(3, 500);
+              Socket =
+                  0; /* data I/O uses socket 0 for this single-conn server */
+              break; /* proceed to your existing while(1) data loop */
+            } else if (w == WIFI_STATUS_TIMEOUT) {
+              /* keep waiting */
+              continue;
+            } else {
+              TERMOUT("> ERROR : WaitServerConnection failed\n");
+              BSP_LED_On(LED2);
+              break;
+            }
+          }
+        } else {
+          TERMOUT("> ERROR : Cannot start server\n");
+          BSP_LED_On(LED2);
+        }
+      } else {
+        TERMOUT("> ERROR : es-wifi module CANNOT get IP address\n");
+        BSP_LED_On(LED2);
+      }
+    } else {
+      TERMOUT("> ERROR : es-wifi module NOT connected\n");
+      BSP_LED_On(LED2);
+    }
+  } else {
+    TERMOUT("> ERROR : WIFI Module cannot be initialized.\n");
+    BSP_LED_On(LED2);
   }
 
   while (1) {
-      if (Socket != -1) {
-          ret = WIFI_ReceiveData(Socket, RxData, sizeof(RxData) - 1, &Datalen, WIFI_READ_TIMEOUT);
+    if (Socket != -1) {
+      ret = WIFI_ReceiveData(Socket, RxData, sizeof(RxData) - 1, &Datalen,
+                             WIFI_READ_TIMEOUT);
 
-          if (ret == WIFI_STATUS_OK) {
-              if (Datalen > 0) {
-                  RxData[Datalen] = 0;
-                  //TERMOUT("Received: %s\n", RxData);
+      if (ret == WIFI_STATUS_OK) {
+        if (Datalen > 0) {
+          RxData[Datalen] = 0;
+          // TERMOUT("Received: %s\n", RxData);
 
-                  update = false;
-                  // treba odvojit primljen string na tri djela,
-                  // prvi je Blink za provjeru i onda sljedeca dva broja
-                  // idu u int kao argumenti funkcije
+          update = false;
+          // treba odvojit primljen string na tri djela,
+          // prvi je Blink za provjeru i onda sljedeca dva broja
+          // idu u int kao argumenti funkcije
 
-				  // TERMOUT("Datalen > 6\n", RxData);
+          // TERMOUT("Datalen > 6\n", RxData);
 
-				  if (RxData[0] == 0) {
-					  TERMOUT("RECEIVED CODE 0\n");
-					  TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n",*boot_to_ptr,*update_to_ptr);
-					  sprintf(TxData4,"%08X, %08X",*boot_to_ptr,*update_to_ptr);
-					  ret = WIFI_SendData(Socket, TxData4, sizeof(TxData4), &Datalen, WIFI_WRITE_TIMEOUT);
+          if (RxData[0] == 0) {
+            TERMOUT("RECEIVED CODE 0\n");
+            TERMOUT("> BOOT FROM: %X, WRITE TO: %X\n", *boot_to_ptr,
+                    *update_to_ptr);
+            sprintf(TxData4, "%08X, %08X", *boot_to_ptr, *update_to_ptr);
+            ret = WIFI_SendData(Socket, TxData4, sizeof(TxData4), &Datalen,
+                                WIFI_WRITE_TIMEOUT);
 
-					  if (ret != WIFI_STATUS_OK) {
-						TERMOUT("> ERROR : Failed to Send Data, connection closed\n");
-						break;
-					  }
-				  }
-				  else if (RxData[0] == 1) {
-					  update = true;
-					  TERMOUT("RECEIVED CODE 1\n");
-					  Flash_WriteBank2Page(offset,&RxData[1],*update_to_ptr);
-					  offset += FLASH_PAGE_SIZE / 4;
-					  ret = WIFI_SendData(Socket, TxData, sizeof(TxData), &Datalen, WIFI_WRITE_TIMEOUT);
+            if (ret != WIFI_STATUS_OK) {
+              TERMOUT("> ERROR : Failed to Send Data, connection closed\n");
+              break;
+            }
+          } else if (RxData[0] == 1) {
+            update = true;
+            TERMOUT("RECEIVED CODE 1\n");
+            Flash_WriteBank2Page(offset, &RxData[1], *update_to_ptr);
+            offset += FLASH_PAGE_SIZE / 4;
+            ret = WIFI_SendData(Socket, TxData, sizeof(TxData), &Datalen,
+                                WIFI_WRITE_TIMEOUT);
 
-					  if (ret != WIFI_STATUS_OK) {
-						TERMOUT("> ERROR : Failed to Send Data, connection closed\n");
-						break;
-					  }
-				  } else if (RxData[0] == 2) {
-					  update=false;
-					  TERMOUT("RECEIVED CODE 2\n");
-					  uint32_t crc = crc32_bitwise((uint8_t*)*update_to_ptr, offset);
-					  TERMOUT("CRC32 = 0x%lX\n", crc);
-					  uint32_t rec_crc= *(uint32_t*)&RxData[1];
-					  TERMOUT("REC CRC32 = 0x%lX\n", rec_crc);
-					  offset = 0;
-					  if (crc == rec_crc) {
-						  updated = true;
-						  ret = WIFI_SendData(Socket, TxData2, sizeof(TxData2), &Datalen, WIFI_WRITE_TIMEOUT);
-						  if (ret != WIFI_STATUS_OK) {
-								TERMOUT("> Connection closed\n");
-								break;
-						  }
-					  } else {
-						  ret = WIFI_SendData(Socket, TxData3, sizeof(TxData3), &Datalen, WIFI_WRITE_TIMEOUT);
-						  if (ret != WIFI_STATUS_OK) {
-								TERMOUT("> Connection closed\n");
-								break;
-						  }
-					  }
-				  } else {
-					  TERMOUT("> Connection closing...\n");
-					  break;
-				  }
-
-              }
-          } else if (update){
-              TERMOUT("> ERROR : Failed to receive data, trying again)");
-              tries++;
-              if (tries == 10) {
+            if (ret != WIFI_STATUS_OK) {
+              TERMOUT("> ERROR : Failed to Send Data, connection closed\n");
+              break;
+            }
+          } else if (RxData[0] == 2) {
+            update = false;
+            TERMOUT("RECEIVED CODE 2\n");
+            uint32_t crc = crc32_bitwise((uint8_t *)*update_to_ptr, offset);
+            TERMOUT("CRC32 = 0x%lX\n", crc);
+            uint32_t rec_crc = *(uint32_t *)&RxData[1];
+            TERMOUT("REC CRC32 = 0x%lX\n", rec_crc);
+            offset = 0;
+            if (crc == rec_crc) {
+              updated = true;
+              ret = WIFI_SendData(Socket, TxData2, sizeof(TxData2), &Datalen,
+                                  WIFI_WRITE_TIMEOUT);
+              if (ret != WIFI_STATUS_OK) {
+                TERMOUT("> Connection closed\n");
                 break;
               }
+            } else {
+              ret = WIFI_SendData(Socket, TxData3, sizeof(TxData3), &Datalen,
+                                  WIFI_WRITE_TIMEOUT);
+              if (ret != WIFI_STATUS_OK) {
+                TERMOUT("> Connection closed\n");
+                break;
+              }
+            }
+          } else {
+            TERMOUT("> Connection closing...\n");
+            break;
           }
-          if (!update) {
-              Blink(4,400);
-          }
+        }
+      } else if (update) {
+        TERMOUT("> ERROR : Failed to receive data, trying again)");
+        tries++;
+        if (tries == 10) {
+          break;
+        }
       }
+      if (!update) {
+        Blink(4, 400);
+      }
+    }
   }
   TERMOUT("> CONNECTION CLOSED RESTARTING SERVER\n");
 
   if (updated) {
-	  Flash_Swap_Two_Words_InPlace();
+    Flash_Swap_Two_Words_InPlace();
   }
-//  __disable_irq();
-//  __HAL_RCC_BACKUPRESET_FORCE();
-//  __HAL_RCC_BACKUPRESET_RELEASE();
+  //  __disable_irq();
+  //  __HAL_RCC_BACKUPRESET_FORCE();
+  //  __HAL_RCC_BACKUPRESET_RELEASE();
   NVIC_SystemReset();
 }
 
 /**
-  * @brief  System Clock Configuration
-  *         The system Clock is configured as follow :
-  *            System Clock source            = PLL (MSI)
-  *            SYSCLK(Hz)                     = 80000000
-  *            HCLK(Hz)                       = 80000000
-  *            AHB Prescaler                  = 1
-  *            APB1 Prescaler                 = 1
-  *            APB2 Prescaler                 = 1
-  *            MSI Frequency(Hz)              = 4000000
-  *            PLL_M                          = 1
-  *            PLL_N                          = 40
-  *            PLL_R                          = 2
-  *            PLL_P                          = 7
-  *            PLL_Q                          = 4
-  *            Flash Latency(WS)              = 4
-  * @param  None
-  * @retval None
-  */
-static void SystemClock_Config(void)
-{
+ * @brief  System Clock Configuration
+ *         The system Clock is configured as follow :
+ *            System Clock source            = PLL (MSI)
+ *            SYSCLK(Hz)                     = 80000000
+ *            HCLK(Hz)                       = 80000000
+ *            AHB Prescaler                  = 1
+ *            APB1 Prescaler                 = 1
+ *            APB2 Prescaler                 = 1
+ *            MSI Frequency(Hz)              = 4000000
+ *            PLL_M                          = 1
+ *            PLL_N                          = 40
+ *            PLL_R                          = 2
+ *            PLL_P                          = 7
+ *            PLL_Q                          = 4
+ *            Flash Latency(WS)              = 4
+ * @param  None
+ * @retval None
+ */
+static void SystemClock_Config(void) {
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_OscInitTypeDef RCC_OscInitStruct;
 
@@ -500,36 +496,37 @@ static void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLP = 7;
   RCC_OscInitStruct.PLL.PLLQ = 4;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     /* Initialization Error */
-    while(1);
+    while (1)
+      ;
   }
 
   /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
-  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK |
+                                 RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
     /* Initialization Error */
-    while(1);
+    while (1)
+      ;
   }
 }
 
-#if defined (TERMINAL_USE)
+#if defined(TERMINAL_USE)
 /**
-  * @brief  Retargets the C library TERMOUT function to the USART.
-  * @param  None
-  * @retval None
-  */
-PUTCHAR_PROTOTYPE
-{
+ * @brief  Retargets the C library TERMOUT function to the USART.
+ * @param  None
+ * @retval None
+ */
+PUTCHAR_PROTOTYPE {
   /* Place your implementation of fputc here */
-  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission
+   */
   HAL_UART_Transmit(&hDiscoUart, (uint8_t *)&ch, 1, 0xFFFF);
 
   return ch;
@@ -539,45 +536,38 @@ PUTCHAR_PROTOTYPE
 #ifdef USE_FULL_ASSERT
 
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
-void assert_failed(uint8_t* file, uint32_t line)
-{
+ * @brief Reports the name of the source file and the source line number
+ * where the assert_param error has occurred.
+ * @param file: pointer to the source file name
+ * @param line: assert_param error line source number
+ * @retval None
+ */
+void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-    ex: TERMOUT("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line
+    number, ex: TERMOUT("Wrong parameters value: file %s on line %d\r\n", file,
+    line) */
   /* USER CODE END 6 */
-
 }
 
 #endif
 
 /**
-  * @brief  EXTI line detection callback.
-  * @param  GPIO_Pin: Specifies the port pin connected to corresponding EXTI line.
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  switch (GPIO_Pin)
-  {
-    case (GPIO_PIN_1):
-    {
-      SPI_WIFI_ISR();
-      break;
-    }
-    default:
-    {
-      break;
-    }
+ * @brief  EXTI line detection callback.
+ * @param  GPIO_Pin: Specifies the port pin connected to corresponding EXTI
+ * line.
+ * @retval None
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  switch (GPIO_Pin) {
+  case (GPIO_PIN_1): {
+    SPI_WIFI_ISR();
+    break;
+  }
+  default: {
+    break;
+  }
   }
 }
 
-void SPI3_IRQHandler(void)
-{
-  HAL_SPI_IRQHandler(&hspi);
-}
+void SPI3_IRQHandler(void) { HAL_SPI_IRQHandler(&hspi); }
