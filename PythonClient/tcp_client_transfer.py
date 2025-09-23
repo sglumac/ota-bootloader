@@ -87,6 +87,6 @@ def tcp_client(host: str, port: int):
 
 if __name__ == "__main__":
     # Example: change to the IP/port of your server
-    SERVER_IP = "192.168.214.184"
+    SERVER_IP = "192.168.214.144"
     SERVER_PORT = 8002
     tcp_client(SERVER_IP, SERVER_PORT)
