@@ -1,0 +1,16 @@
+14:10:35 **** Incremental Build of configuration Debug for project Bootloader_test ****
+make -j16 all 
+arm-none-eabi-gcc -o "Bootloader_test.elf" @"objects.list"   -mcpu=cortex-m4 -T"/home/matijak/programiranje/spyrosoft/STM32CubeIDE/Bootloader_test/STM32L475VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Bootloader_test.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Bootloader_test.elf
+ 
+arm-none-eabi-size  Bootloader_test.elf 
+arm-none-eabi-objdump -h -S Bootloader_test.elf  > "Bootloader_test.list"
+arm-none-eabi-objcopy  -O binary Bootloader_test.elf  "Bootloader_test.bin"
+   text	   data	    bss	    dec	    hex	filename
+   7616	     12	  77860	  85488	  14df0	Bootloader_test.elf
+Finished building: default.size.stdout
+ 
+Finished building: Bootloader_test.bin
+ 
+Finished building: Bootloader_test.list
+ 

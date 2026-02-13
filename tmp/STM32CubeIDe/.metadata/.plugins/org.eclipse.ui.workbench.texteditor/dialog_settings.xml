@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="hasShownOverlayPopupBefore" value="true"/>
+	<item key="replaceBarOpen" value="false"/>
+	<list key="searchhistory">
+		<item value="updated"/>
+		<item value="TXData"/>
+		<item value="TxData2"/>
+		<item value="RxData"/>
+		<item value="DEFINE TERM"/>
+		<item value="READ"/>
+		<item value="VTOR"/>
+		<item value="FLASH"/>
+		<item value="BASE"/>
+		<item value="FLASH_BASE"/>
+		<item value="FLASH_BAW"/>
+		<item value="TERMINAL_USE"/>
+		<item value="TERM"/>
+		<item value="TEMROUT"/>
+		<item value="TxData"/>
+	</list>
+</section>

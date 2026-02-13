@@ -1,0 +1,10 @@
+../../Drivers/CMSIS/Include/core_cm4.h:1933:34:__NVIC_SystemReset	1
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:90:19:Flash_WriteBank2Page	5
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:156:10:crc32_bitwise	4
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:177:13:Blink	2
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:189:19:Flash_Swap_Two_Words_InPlace	5
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:259:5:main	22
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:486:13:SystemClock_Config	3
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:529:1:__io_putchar	1
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:564:6:HAL_GPIO_EXTI_Callback	2
+/home/matijak/programiranje/spyrosoft/STM32CubeIDE/WiFi_Client_Server/Src/main.c:580:6:SPI3_IRQHandler	1
